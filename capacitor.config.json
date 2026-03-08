@@ -14,7 +14,8 @@
       "keystoreAliasPassword": null
     },
     "backgroundColor": "#0a0a0f",
-    "allowMixedContent": false,
+    ""allowMixedContent": false,
+"scrollingEnabled": true,
     "webContentsDebuggingEnabled": false
   },
   "plugins": {
