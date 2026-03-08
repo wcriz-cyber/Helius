@@ -44,7 +44,7 @@ jobs:
       # 7 — Compilar APK debug (instalable directamente)
       - name: Compilar APK
         working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
+        run: chmod +x gradlew && ./gradlew assembleDebug --stacktrace
 
       # 8 — Subir APK como artifact descargable
       - name: Publicar APK
