@@ -20158,6 +20158,108 @@ O2: ${order2Err || '?'}`, 7000);
             <!-- botones renderizados dinámicamente -->
         </div>
     </div>
-</div>
+</div<script>
+(function() {
+    // 1. CORRECCIÓN DINÁMICA DE ESTILOS Y SCROLL (ETF y Panel 3)
+    const styleFix = document.createElement('style');
+    styleFix.innerHTML = `
+        /* Corregir viewport del APK nativo */
+        #section-settings.active, #section-etf.active, #section-log.active, 
+        #section-support.active, #section-strategy.active, #section-notif.active {
+            height: calc(100vh - var(--safe-top) - 50px) !important;
+        }
+        /* Restaurar aceleración GPU en las tarjetas de ETF para que el scroll no se trabe */
+        .etf-mc {
+            overflow: hidden !important;
+            touch-action: pan-y !important;
+        }
+        /* Asegurar que el Panel de Niveles y Monitor ETF puedan hacer scroll */
+        #panel0 *, #panel1 *, #panel2 *, #panel5 *, #levelsGrid *, #etfGrid *, 
+        #section-etf *, #section-log *, #section-notif *, #section-strategy * {
+            touch-action: pan-y !important;
+        }
+        /* Corrección de colapso de Grid en Panel 3 */
+        #panel2 .panel-content, #panel5 .panel-content { padding-bottom: 0 !important; }
+        #panel2 #levelsGrid, #panel5 #levelsGrid { 
+            padding-bottom: calc(80px + var(--safe-bottom, 20px)) !important; 
+            max-height: none !important; 
+            overflow-y: visible !important; 
+        }
+        #etfGrid.levels-container {
+            max-height: none !important; 
+            overflow-y: visible !important; 
+            padding: 0 10px 8px !important;
+            padding-top: 0 !important;
+        }
+    `;
+    document.head.appendChild(styleFix);
+
+    // 2. CORRECCIÓN DINÁMICA DE NOTIFICACIONES NATIVAS PARA ANDROID CAPACITOR
+    window.sendNativeNotif = function(title, body, opts) {
+        opts = opts || {};
+        if (!('Notification' in window)) return;
+        const _appBase = location.origin + location.pathname.replace(/[^/]*$/, '');
+        const options = {
+            body: body || '', tag: opts.tag || ('c5x-' + Date.now()),
+            requireInteraction: opts.requireInteraction !== false, silent: false,
+            vibrate: opts.vibrate || [200, 100, 200], icon: _appBase + 'icon.png', 
+            badge: _appBase + 'badge.png', timestamp: opts.timestamp || Date.now(),
+            renotify: !!opts.renotify, data: opts.data || {}
+        };
+        
+        // Intento 1: Capacitor Nativo (Si es APK compilado en GitHub)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+            window.Capacitor.Plugins.LocalNotifications.schedule({
+                notifications: [{
+                    title: title, body: options.body, id: Math.floor(Math.random() * 1000000),
+                    schedule: { at: new Date(Date.now() + 100) }, smallIcon: "ic_stat_icon_config"
+                }]
+            });
+            return;
+        }
+        // Intento 2: TWA / Service Worker Nativo
+        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+            navigator.serviceWorker.ready.then(reg => reg.showNotification(title, options).catch(()=>{}));
+            return;
+        }
+        // Intento 3: Fallback Web Clásico
+        if (Notification.permission === 'granted') {
+            try { new Notification(title, options); } catch(e) {}
+        }
+    };
+
+    window.requestNotifPermission = function() {
+        if (!('Notification' in window)) {
+            if(typeof showToast === 'function') showToast('⚠️ Notificaciones no soportadas', 3000);
+            return;
+        }
+        
+        // Pedir permiso vía Capacitor Nativo
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+            window.Capacitor.Plugins.LocalNotifications.requestPermissions().then(result => {
+                if (result.display === 'granted') {
+                    if(typeof updateNotifSettingsUI === 'function') updateNotifSettingsUI();
+                    if(typeof showToast === 'function') showToast('✅ Permiso concedido en Android', 2500);
+                    const banner = document.getElementById('notifPermBanner');
+                    if (banner) banner.classList.remove('visible');
+                }
+            });
+            return;
+        }
+        
+        // Pedir permiso Web/PWA tradicional
+        Notification.requestPermission().then(perm => {
+            if(typeof updateNotifSettingsUI === 'function') updateNotifSettingsUI();
+            if (perm === 'granted') {
+                if(typeof showToast === 'function') showToast('✅ Permiso concedido', 2500);
+                const banner = document.getElementById('notifPermBanner');
+                if (banner) banner.classList.remove('visible');
+            }
+        });
+    };
+    
+    console.log("🚀 Parche de Scroll y Notificaciones aplicado con éxito.");
+})();
+</script>>
 </body>
 </html>
