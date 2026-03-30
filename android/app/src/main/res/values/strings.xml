@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">5X</string>
-    <string name="title_activity_main">5X</string>
-    <string name="package_name">com.wcriz.trading5x</string>
-    <string name="custom_url_scheme">com.wcriz.trading5x</string>
-</resources>
